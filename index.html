@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="vi" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KIỂM TRA TX. BÀI 3 LẠM PHÁT - Giao Diện 3D GD KT&PL</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        navy: {
+                            50: '#f0f4f8',
+                            100: '#d9e2ec',
+                            200: '#bccadc',
+                            300: '#9fb3c8',
+                            400: '#829ab1',
+                            500: '#627d98',
+                            600: '#486581',
+                            700: '#334e68',
+                            800: '#243b53',
+                            900: '#102a43',
+                            950: '#0b2545',
+                            dark: '#051923',
+                            brand: '#134074',
+                            glow: '#00f0ff'
+                        }
+                    },
+                    boxShadow: {
+                        '3d-sm': '0 3px 0 0 #0b2545, 0 4px 8px rgba(0,0,0,0.15)',
+                        '3d-md': '0 5px 0 0 #0b2545, 0 8px 16px rgba(11,37,69,0.25)',
+                        '3d-lg': '0 6px 0 0 #051923, 0 10px 20px rgba(0,0,0,0.3)',
+                        '3d-cyan': '0 5px 0 0 #0891b2, 0 8px 16px rgba(6,182,212,0.3)',
+                        '3d-emerald': '0 5px 0 0 #047857, 0 8px 16px rgba(16,185,129,0.3)',
+                        '3d-rose': '0 5px 0 0 #be123c, 0 8px 16px rgba(244,63,94,0.3)',
+                        '3d-card': '0 15px 30px -10px rgba(11, 37, 69, 0.35), inset 0 1px 1px 0 rgba(255,255,255,0.6)'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Font Awesome 3D Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Lexend -->
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Three.js for 3D Interactive WebGL Background -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Lexend', sans-serif;
+            background: #0b2545;
+            color: #f1f5f9;
+            overflow-x: hidden;
+        }
+
+        #three-bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .glass-3d {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .btn-3d {
+            transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateY(0);
+        }
+        .btn-3d:active:not(:disabled) {
+            transform: translateY(3px) !important;
+            box-shadow: 0 1px 0 0 transparent !important;
+        }
+
+        .text-glow-cyan {
+            text-shadow: 0 0 12px rgba(6, 182, 212, 0.6);
+        }
+        
+        .text-glow-amber {
+            text-shadow: 0 0 12px rgba(245, 158, 11, 0.6);
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b2545;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e40af;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col justify-between relative selection:bg-cyan-500 selection:text-white overflow-hidden">
+
+    <canvas id="three-bg-canvas"></canvas>
+
+    <!-- Top Header -->
+    <header class="relative z-10 bg-navy-950/95 backdrop-blur-md border-b border-navy-700/60 shadow-xl flex-shrink-0">
+        <div class="max-w-4xl mx-auto px-4 py-2 flex justify-between items-center">
+            <div class="flex items-center space-x-2.5">
+                <div class="w-9 h-9 bg-gradient-to-br from-cyan-500 to-navy-brand rounded-xl flex items-center justify-center text-white shadow-3d-cyan">
+                    <i class="fa-solid fa-chart-line text-sm"></i>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-sm md:text-base tracking-wide text-white flex items-center gap-1.5">
+                        BÀI 3: LẠM PHÁT <span class="text-[10px] px-1.5 py-0.5 rounded-md bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-semibold">GD KT&PL 11</span>
+                    </h1>
+                    <p class="text-[11px] text-slate-300 flex items-center gap-1">
+                        <i class="fa-solid fa-vr-cardboard text-cyan-400"></i> Không gian 3D
+                    </p>
+                </div>
+            </div>
+            
+            <div id="header-stats" class="flex items-center space-x-2">
+                <div id="timer-badge" class="hidden items-center bg-navy-900/90 border border-amber-500/50 px-3 py-1 rounded-xl text-xs font-bold shadow-3d-sm text-amber-300">
+                    <i class="fa-solid fa-hourglass-half mr-1.5 text-amber-400 animate-pulse"></i>
+                    <span id="time-display" class="font-mono text-sm text-glow-amber">15:00</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Interactive Container -->
+    <main class="relative z-10 max-w-3xl mx-auto px-4 py-3 flex-grow w-full flex flex-col justify-center overflow-hidden">
+        
+        <!-- Welcome Screen Card 3D -->
+        <div id="welcome-screen" class="glass-3d rounded-2xl p-5 md:p-6 text-center shadow-3d-card border border-white/90 max-h-[calc(100vh-100px)] overflow-y-auto">
+            <div class="relative w-16 h-16 mx-auto mb-3">
+                <div class="absolute inset-0 bg-cyan-500/30 rounded-2xl blur-lg animate-pulse"></div>
+                <div class="relative w-full h-full bg-gradient-to-tr from-navy-950 via-navy-brand to-cyan-600 text-cyan-300 rounded-2xl flex items-center justify-center text-2xl shadow-3d-lg border border-cyan-400/40">
+                    <i class="fa-solid fa-money-bill-trend-up"></i>
+                </div>
+            </div>
+
+            <h2 class="text-xl md:text-2xl font-black text-navy-950 mb-1.5 tracking-tight">
+                KIỂM TRA TX. BÀI 3: LẠM PHÁT
+            </h2>
+            <p class="text-slate-600 text-xs md:text-sm max-w-md mx-auto mb-4 leading-relaxed font-medium">
+                Đề gồm 12 câu hỏi (Trắc nghiệm, Đúng/Sai và Cột A - Cột B). Thời gian làm bài: <strong class="text-navy-brand font-bold underline decoration-cyan-500">15 phút</strong>.
+            </p>
+
+            <!-- Form Điền Thông Tin Học Sinh -->
+            <div class="bg-white/80 backdrop-blur-md border border-cyan-500/30 rounded-xl p-4 max-w-md mx-auto mb-4 text-left shadow-3d-sm space-y-3">
+                <div class="font-bold text-navy-950 flex items-center gap-1.5 text-xs uppercase tracking-wider">
+                    <i class="fa-solid fa-id-card text-cyan-600"></i> Thông Tin Học Sinh:
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 mb-1">Họ và Tên <span class="text-rose-500">*</span></label>
+                        <input type="text" id="student-name-input" placeholder="Ví dụ: Nguyễn Văn A" class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-200 text-slate-900 font-semibold text-xs transition-all" />
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-700 mb-1">Lớp <span class="text-rose-500">*</span></label>
+                        <input type="text" id="student-class-input" placeholder="Ví dụ: 11A1" class="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-200 text-slate-900 font-semibold text-xs transition-all" />
+                    </div>
+                </div>
+                <p id="student-info-error" class="hidden text-[11px] text-rose-600 font-bold flex items-center gap-1">
+                    <i class="fa-solid fa-circle-exclamation"></i> Vui lòng nhập đầy đủ Họ tên và Lớp!
+                </p>
+            </div>
+
+            <div class="bg-navy-950/90 border border-navy-700/80 rounded-xl p-3 max-w-md mx-auto mb-4 text-left space-y-2 shadow-inner">
+                <div class="font-bold text-cyan-300 flex items-center gap-1.5 text-xs uppercase tracking-wider">
+                    <i class="fa-solid fa-shield-halved text-amber-400"></i> Quy định:
+                </div>
+                <ul class="text-[11px] text-slate-300 space-y-1 list-none">
+                    <li class="flex items-center gap-1.5">
+                        <i class="fa-solid fa-user-lock text-rose-400"></i>
+                        <span>Làm bài 1 lần duy nhất trong 15 phút.</span>
+                    </li>
+                    <li class="flex items-center gap-1.5">
+                        <i class="fa-solid fa-list-check text-cyan-400"></i>
+                        <span>Bắt buộc hoàn thành 100% câu hỏi mới được nộp bài.</span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="flex justify-center">
+                <button id="start-btn" onclick="validateAndStartQuiz()" class="btn-3d bg-gradient-to-r from-navy-brand via-blue-700 to-cyan-600 hover:from-navy-950 hover:to-navy-brand text-white font-extrabold px-8 py-3 rounded-xl shadow-3d-cyan text-sm flex items-center gap-2 tracking-wide">
+                    <i class="fa-solid fa-play text-cyan-300"></i> Bắt Đầu Làm Bài
+                </button>
+            </div>
+        </div>
+
+        <!-- Quiz Container 3D -->
+        <div id="quiz-container" class="hidden flex flex-col h-full max-h-[calc(100vh-80px)] justify-between space-y-3 pb-2">
+            
+            <div class="glass-3d rounded-xl border border-white/80 p-3.5 shadow-3d-md flex flex-col gap-2.5 flex-shrink-0">
+                <div class="flex items-center justify-between gap-2 border-b border-slate-200/80 pb-2">
+                    <div id="active-student-badge" class="flex items-center gap-2 text-navy-950 font-bold text-xs">
+                        <span class="px-2 py-0.5 bg-cyan-100 border border-cyan-300 text-cyan-900 rounded-md text-[10px] font-black">Học Sinh</span>
+                        <span id="display-student-name" class="text-navy-brand font-black">---</span>
+                        <span id="display-student-class" class="text-[10px] bg-slate-200 px-1.5 py-0.5 rounded font-bold text-slate-700">---</span>
+                    </div>
+                    <span class="text-[11px] text-rose-600 font-extrabold flex items-center gap-1">
+                        <i class="fa-solid fa-lock text-[10px]"></i> 1/1 lượt
+                    </span>
+                </div>
+
+                <div class="flex justify-between items-center text-xs font-bold text-navy-950">
+                    <span class="flex items-center gap-1.5">
+                        <i class="fa-solid fa-list-check text-navy-brand"></i>
+                        Câu <span id="current-q-num" class="text-cyan-700 font-extrabold text-sm">1</span> / <span id="total-q-num">12</span>
+                    </span>
+                    <span id="completion-tracker" class="text-[11px] font-extrabold px-2.5 py-1 bg-navy-950 text-cyan-300 rounded-lg border border-navy-800 shadow-sm">
+                        Đã làm: 0 / 12
+                    </span>
+                </div>
+                
+                <div class="w-full bg-slate-200/80 h-2.5 rounded-full overflow-hidden p-0.5 border border-slate-300/50 shadow-inner">
+                    <div id="progress-bar" class="bg-gradient-to-r from-navy-brand to-cyan-500 h-full rounded-full transition-all duration-300 shadow-3d-cyan"></div>
+                </div>
+
+                <div class="bg-slate-900/10 p-2.5 rounded-xl border border-slate-300/80">
+                    <div id="question-dots" class="flex flex-wrap gap-1.5 justify-center"></div>
+                </div>
+            </div>
+
+            <!-- Question Card Scrollable Area -->
+            <div id="question-card" class="glass-3d rounded-2xl border border-white/90 p-4 md:p-5 shadow-3d-card relative overflow-y-auto flex-grow"></div>
+
+            <!-- Navigation Buttons -->
+            <div class="flex justify-between items-center pt-1 flex-shrink-0">
+                <button id="prev-btn" onclick="navigateQuestion(-1)" class="btn-3d px-4 py-2 bg-white hover:bg-slate-100 text-navy-950 font-bold rounded-xl text-xs border border-slate-300 shadow-3d-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5">
+                    <i class="fa-solid fa-chevron-left"></i> Câu Trước
+                </button>
+
+                <div class="flex gap-2">
+                    <button id="next-btn" onclick="navigateQuestion(1)" class="btn-3d px-5 py-2 bg-navy-brand hover:bg-navy-950 text-white font-bold rounded-xl text-xs shadow-3d-md flex items-center gap-1.5">
+                        Câu Tiếp <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                    <button id="submit-btn" onclick="promptSubmitQuiz()" class="btn-3d px-5 py-2 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white font-extrabold rounded-xl text-xs shadow-3d-emerald flex items-center gap-1.5">
+                        <i class="fa-solid fa-paper-plane"></i> Nộp Bài
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Result Screen 3D (No detailed answers) -->
+        <div id="result-screen" class="hidden glass-3d rounded-2xl shadow-3d-card border border-white p-6 md:p-8 space-y-6 max-h-[calc(100vh-80px)] overflow-y-auto text-center max-w-lg mx-auto w-full">
+            <div class="space-y-3">
+                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-xl bg-navy-950 text-white border border-cyan-400/40 shadow-3d-sm text-xs">
+                    <i class="fa-solid fa-user-graduate text-cyan-400"></i>
+                    <span id="result-student-info" class="font-extrabold text-cyan-200">Học sinh: Nguyễn Văn A - Lớp: 11A1</span>
+                </div>
+
+                <div id="form-sync-status" class="text-[11px] font-extrabold text-emerald-700 flex items-center justify-center gap-1.5 bg-emerald-100/90 px-3 py-1.5 rounded-lg border border-emerald-300 w-max mx-auto shadow-sm">
+                    <i class="fa-solid fa-cloud-arrow-up text-emerald-600 animate-bounce"></i>
+                    <span>Kết quả đã được tự động đồng bộ về hệ thống giáo viên!</span>
+                </div>
+
+                <div class="relative w-28 h-28 mx-auto my-2">
+                    <div class="absolute inset-0 bg-cyan-400/30 rounded-full blur-xl animate-pulse"></div>
+                    <div id="score-badge" class="relative w-full h-full rounded-full bg-gradient-to-b from-navy-900 to-navy-950 text-cyan-300 flex items-center justify-center text-3xl md:text-4xl font-black shadow-3d-lg border-4 border-cyan-400/50 text-glow-cyan">
+                        0đ
+                    </div>
+                </div>
+                <h2 class="text-xl md:text-2xl font-black text-navy-950 uppercase tracking-tight">HOÀN THÀNH BÀI KIỂM TRA</h2>
+                <p id="score-summary" class="text-slate-700 font-semibold text-xs md:text-sm max-w-sm mx-auto">Bạn đã hoàn thành bài kiểm tra thành công!</p>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3 text-center">
+                <div class="bg-navy-950 text-white p-3 rounded-xl shadow-3d-sm border border-navy-800">
+                    <p class="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">Tổng số câu</p>
+                    <p class="text-lg font-black text-white mt-0.5">12 câu</p>
+                </div>
+                <div class="bg-emerald-950/20 border-2 border-emerald-500/40 p-3 rounded-xl shadow-3d-emerald">
+                    <p class="text-[10px] text-emerald-700 font-extrabold uppercase tracking-wider">Số câu đúng</p>
+                    <p id="stat-correct" class="text-lg font-black text-emerald-600 mt-0.5">0/0</p>
+                </div>
+                <div class="bg-cyan-950/20 border-2 border-cyan-500/40 p-3 rounded-xl shadow-3d-cyan">
+                    <p class="text-[10px] text-cyan-800 font-extrabold uppercase tracking-wider">Thời gian làm</p>
+                    <p id="stat-time" class="text-lg font-black text-cyan-700 mt-0.5">--:--</p>
+                </div>
+            </div>
+
+            <div class="flex flex-col items-center justify-center pt-2 space-y-2">
+                <div id="single-attempt-notice" class="bg-amber-100 border border-amber-300 text-amber-900 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5">
+                    <i class="fa-solid fa-lock text-amber-600"></i>
+                    <span>Đã hoàn thành lượt làm bài duy nhất (1/1). Giáo viên không hiển thị chi tiết đáp án.</span>
+                </div>
+                <button disabled class="opacity-50 cursor-not-allowed bg-slate-400 text-white font-extrabold px-6 py-2.5 rounded-xl text-xs flex items-center gap-2">
+                    <i class="fa-solid fa-ban"></i> Đã hết số lượt làm bài
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Custom 3D Modal Dialog -->
+    <div id="custom-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-navy-950/80 backdrop-blur-md">
+        <div class="glass-3d max-w-sm w-full rounded-2xl p-6 shadow-3d-lg border border-white transform transition-all scale-100 space-y-4 text-navy-950 text-center">
+            <div id="modal-icon" class="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-white flex items-center justify-center text-xl mx-auto shadow-3d-sm">
+                <i class="fa-solid fa-circle-exclamation"></i>
+            </div>
+            <h3 id="modal-title" class="text-base font-extrabold text-navy-950">Xác nhận</h3>
+            <p id="modal-msg" class="text-xs text-slate-600 font-medium leading-relaxed">Nội dung thông báo...</p>
+            <div class="flex justify-center gap-2 pt-1" id="modal-actions">
+                <button id="modal-cancel-btn" onclick="closeModal()" class="btn-3d px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold rounded-xl text-xs border border-slate-300">
+                    Hủy bỏ
+                </button>
+                <button id="modal-confirm-btn" onclick="confirmModalAction()" class="btn-3d px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs shadow-3d-emerald">
+                    Xác nhận
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="relative z-10 bg-navy-950/95 border-t border-navy-800 py-2.5 text-center text-[11px] text-slate-400 flex-shrink-0">
+        <p>Kiểm Tra GD KT&PL 11 - Bài 3: Lạm Phát • Giao Diện 3D Thu Gọn</p>
+    </footer>
+
+    <script>
+        const quizData = [
+            // PHẦN I. TRẮC NGHIỆM NHIỀU LỰA CHỌN (8 CÂU)
+            {
+                id: 1,
+                section: 'PHẦN I. TRẮC NGHIỆM NHIỀU LỰA CHỌN',
+                type: 'single',
+                question: 'Sự tăng mức giá chung các hàng hóa, dịch vụ của nền kinh tế một cách liên tục trong một khoảng thời gian nhất định được gọi là',
+                options: [
+                    'Khủng hoảng kinh tế.',
+                    'Lạm phát.',
+                    'Thất nghiệp.',
+                    'Tăng trưởng kinh tế.'
+                ],
+                correct: 1,
+                explanation: 'Lạm phát là sự tăng mức giá chung của các hàng hóa, dịch vụ trong nền kinh tế một cách liên tục trong một khoảng thời gian nhất định.'
+            },
+            {
+                id: 2,
+                section: 'PHẦN I. TRẮC NGHIỆM NHIỀU LỰA CHỌN',
+                type: 'single',
+                question: 'Chỉ số giá tiêu dùng (CPI) được dùng để đo lường mức giá trung bình của danh mục hàng hóa, dịch vụ mà người tiêu dùng mua sắm. Khi CPI bình quân tăng 1,84% trong năm cho biết',
+                options: [
+                    'Mức giá chung tăng nhẹ, lạm phát được kiểm soát tốt.',
+                    'Nền kinh tế rơi vào siêu lạm phát.',
+                    'Tất cả các hàng hóa đều tăng giá gấp đôi.',
+                    'Đồng tiền hoàn toàn mất giá và không còn giá trị.'
+                ],
+                correct: 0,
+                explanation: 'Mức tăng CPI 1,84% phản ánh lạm phát ở mức rất thấp (dưới 10% - lạm phát vừa phải), thể hiện mức giá chung tăng nhẹ và lạm phát được Nhà nước kiểm soát tốt.'
+            },
+            {
+                id: 3,
+                section: 'PHẦN I. TRẮC NGHIỆM NHIỀU LỰA CHỌN',
+                type: 'single',
+                question: 'Căn cứ vào mức độ tăng giá, lạm phát được chia thành 3 loại hình cơ bản là',
+                options: [
+                    'Lạm phát vừa phải, lạm phát phi mã và siêu lạm phát.',
+                    'Lạm phát tự nhiên, lạm phát cơ cấu và lạm phát chu kì.',
+                    'Lạm phát ngắn hạn, lạm phát trung hạn và lạm phát dài hạn.',
+                    'Lạm phát do chi phí đẩy, lạm phát do cầu kéo và lạm phát tiền tệ.'
+                ],
+                correct: 0,
+                explanation: 'Theo mức độ tăng giá, lạm phát được chia thành: Lạm phát vừa phải (dưới 10%/năm), Lạm phát phi mã (từ 10% đến dưới 1000%/năm) và Siêu lạm phát (từ 1000%/năm trở lên).'
+            },
+            {
+                id: 4,
+                section: 'PHẦN I. TRẮC NGHIỆM NHIỀU LỰA CHỌN',
+                type: 'single',
+                question: 'Loại hình lạm phát nào có mức tăng giá ở mức một chữ số hằng năm (dưới 10%), giá cả biến động chậm và nền kinh tế được đánh giá là tương đối ổn định?',
+                options: [
+                    'Siêu lạm phát.',
+                    'Lạm phát phi mã.',
+                    'Lạm phát vừa phải.',
+                    'Lạm phát chu kì.'
+                ],
+                correct: 2,
+                explanation: 'Lạm phát vừa phải (lạm phát một chữ số) có mức tăng giá dưới 10%/năm, giá cả biến động chậm, tâm lý người dân ổn định và nền kinh tế phát triển an toàn.'
+            },
+            {
+                id: 5,
+                section: 'PHẦN I. TRẮC NGHIỆM NHIỀU LỰA CHỌN',
+                type: 'single',
+                question: 'Khi giá nguyên liệu, nhiên liệu (xăng, dầu, điện) và chi phí tiền lương tăng cao dẫn đến chi phí sản xuất tăng, đẩy giá thành sản phẩm tăng lên là nguyên nhân gây ra',
+                options: [
+                    'Lạm phát do chi phí sản xuất tăng cao (chi phí đẩy).',
+                    'Lạm phát do cầu kéo.',
+                    'Lạm phát do phát hành thừa tiền trong lưu thông.',
+                    'Lạm phát tự nhiên.'
+                ],
+                correct: 0,
+                explanation: 'Lạm phát do chi phí đẩy xảy ra khi chi phí sản xuất các yếu tố đầu vào (xăng, dầu, điện, tiền lương...) tăng làm đẩy giá thành sản phẩm bán ra tăng theo.'
+            },
+            {
+                id: 6,
+                section: 'PHẦN I. TRẮC NGHIỆM NHIỀU LỰA CHỌN',
+                type: 'single',
+                question: 'Nhu cầu mua sắm thực phẩm, quần áo, dịch vụ du lịch của người dân tăng đột biến trong dịp Tết Nguyên đán khiến tổng cầu vượt tổng cung, đẩy giá cả tăng cao là biểu hiện của',
+                options: [
+                    'Lạm phát do cầu tăng cao (cầu kéo).',
+                    'Lạm phát do chi phí đẩy.',
+                    'Siêu lạm phát.',
+                    'Lạm phát cơ cấu.'
+                ],
+                correct: 0,
+                explanation: 'Lạm phát do cầu kéo phát sinh khi tổng cầu hàng hóa, dịch vụ trong nền kinh tế tăng quá nhanh vượt quá khả năng cung ứng, kéo giá cả thị trường lên cao.'
+            },
+            {
+                id: 7,
+                section: 'PHẦN I. TRẮC NGHIỆM NHIỀU LỰA CHỌN',
+                type: 'single',
+                question: 'Một trong những hậu quả nghiêm trọng của lạm phát cao đối với người tiêu dùng là',
+                options: [
+                    'Sức mua của đồng tiền suy giảm, thu nhập thực tế giảm làm đời sống đắt đỏ.',
+                    'Giúp người lao động tăng thu nhập thực tế nhanh chóng.',
+                    'Giảm chi phí sản xuất của các doanh nghiệp.',
+                    'Khuyến khích người dân tích trữ tiền mặt.'
+                ],
+                correct: 0,
+                explanation: 'Lạm phát cao làm giảm sức mua thực tế của đồng tiền. Với cùng một khoản tiền, người tiêu dùng mua được ít hàng hóa hơn, làm chi phí sinh hoạt đắt đỏ và mức sống suy giảm.'
+            },
+            {
+                id: 8,
+                section: 'PHẦN I. TRẮC NGHIỆM NHIỀU LỰA CHỌN',
+                type: 'single',
+                question: 'Để kiềm chế và kiểm soát lạm phát, giải pháp trọng tâm thuộc chính sách tiền tệ của Nhà nước là',
+                options: [
+                    'Kiểm soát mức cung tiền, điều chỉnh lãi suất hợp lý.',
+                    'Khuyến khích người dân mua tích trữ hàng hóa.',
+                    'In thêm nhiều tiền mặt đưa vào lưu thông.',
+                    'Tăng chi tiêu công của chính phủ.'
+                ],
+                correct: 0,
+                explanation: 'Ngân hàng Nhà nước sử dụng chính sách tiền tệ (kiểm soát khối lượng tiền cung ứng vào lưu thông, tăng/giảm lãi suất linh hoạt) để kiềm chế lạm phát.'
+            },
+
+            // PHẦN II. TRẮC NGHIỆM ĐÚNG - SAI (2 CÂU MULTIPLE TF)
+            {
+                id: 9,
+                section: 'PHẦN II. TRẮC NGHIỆM ĐÚNG - SAI',
+                type: 'multiple_tf',
+                question: 'Đọc tình huống sau và cho biết các nhận định đúng hay sai: Do biến động tình hình địa chính trị thế giới, giá xăng dầu và nguyên liệu đầu vào nhập khẩu tăng 20%. Tại địa phương X, thấy giá xăng tăng, bà H lập tức rút toàn bộ tiền tiết kiệm mua 500kg gạo và 50 thùng dầu ăn về tích trữ trong kho nhà do lo sợ giá sắp tăng gấp đôi. Chị N (hàng xóm) thấy vậy liền khuyên bà H không nên mua tích trữ vì hành vi này sẽ tạo hiện tượng khan hiếm giả tạo, đẩy giá gạo và dầu ăn leo thang. Cùng thời điểm, Ngân hàng Nhà nước ban hành chính sách điều chỉnh lãi suất linh hoạt và kiểm soát lượng tiền trong lưu thông để bình ổn thị trường.',
+                statements: [
+                    {
+                        key: 'a',
+                        text: 'Việc giá xăng dầu tăng làm giá thành vận chuyển và giá sản phẩm tăng là nguyên nhân lạm phát do chi phí sản xuất tăng cao (chi phí đẩy).',
+                        correct: true,
+                        explanation: 'Đúng. Giá xăng dầu là chi phí đầu vào trực tiếp; khi tăng sẽ làm tăng chi phí vận tải và đẩy giá hàng hóa tăng.'
+                    },
+                    {
+                        key: 'b',
+                        text: 'Hành vi rút tiền mua tích trữ 500kg gạo của bà H là đúng đắn, thể hiện sự chủ động của người tiêu dùng thông minh khi có lạm phát.',
+                        correct: false,
+                        explanation: 'Sai. Hành vi tích trữ hàng loạt gây khan hiếm giả tạo và làm trầm trọng thêm tình trạng tăng giá, vi phạm nguyên tắc ứng xử tiêu dùng.'
+                    },
+                    {
+                        key: 'c',
+                        text: 'Lời khuyên của chị N đối với bà H là hoàn toàn xác đáng và góp phần hạn chế tâm lý đám đông gây rối loạn thị trường.',
+                        correct: true,
+                        explanation: 'Đúng. Chị N đã khuyên đúng đắn nhằm ngăn chặn hiệu ứng dây chuyền đẩy giá cả leo thang do tích trữ.'
+                    },
+                    {
+                        key: 'd',
+                        text: 'Ngân hàng Nhà nước thắt chặt cung tiền và điều chỉnh tăng lãi suất là giải pháp chính sách tài khóa nhằm kích thích tổng cầu tăng trưởng.',
+                        correct: false,
+                        explanation: 'Sai. Đây là công cụ thuộc chính sách tiền tệ (không phải chính sách tài khóa) nhằm thắt chặt lượng tiền và kiềm chế lạm phát.'
+                    }
+                ]
+            },
+            {
+                id: 10,
+                section: 'PHẦN II. TRẮC NGHIỆM ĐÚNG - SAI',
+                type: 'multiple_tf',
+                question: 'Xét các nhận định về tác động của lạm phát và biện pháp kiểm soát trong nền kinh tế thị trường:',
+                statements: [
+                    {
+                        key: 'a',
+                        text: 'Lạm phát vừa phải (dưới 10%) thường không gây tác động tiêu cực lớn và có thể kích thích sản xuất kinh doanh phát triển năng động.',
+                        correct: true,
+                        explanation: 'Đúng. Ở mức độ vừa phải, giá cả tăng nhẹ tạo động lực cho các nhà sản xuất mở rộng đầu tư.'
+                    },
+                    {
+                        key: 'b',
+                        text: 'Khi xảy ra siêu lạm phát, giá trị đồng tiền suy giảm nghiêm trọng, người dân có xu hướng đẩy nhanh việc nắm giữ tiền mặt thay vì tài sản khác.',
+                        correct: false,
+                        explanation: 'Sai. Trong siêu lạm phát, người dân tìm cách tống tháo tiền mặt ngay lập tức để chuyển sang mua vàng, bất động sản hoặc hàng hóa vì tiền mất giá cực nhanh.'
+                    },
+                    {
+                        key: 'c',
+                        text: 'Nhà nước có thể sử dụng chính sách tài khóa mở rộng (tăng thuế, giảm chi tiêu công) để kiềm chế lạm phát do cầu kéo.',
+                        correct: false,
+                        explanation: 'Sai. Để kiềm chế lạm phát do cầu kéo, Nhà nước phải dùng chính sách tài khóa thắt chặt (giảm chi tiêu công, tăng thuế).'
+                    },
+                    {
+                        key: 'd',
+                        text: 'Người có thu nhập cố định (lương hưu, công chức) chịu thiệt hại nặng nề nhất khi lạm phát phi mã hoặc siêu lạm phát xảy ra.',
+                        correct: true,
+                        explanation: 'Đúng. Do mức lương không tăng kịp theo tốc độ leo thang của giá cả, sức mua và đời sống của người có thu nhập cố định bị suy giảm nghiêm trọng.'
+                    }
+                ]
+            },
+
+            // PHẦN III. GHÉP NỐI CỘT A VỚI CỘT B (2 CÂU MATCHING)
+            {
+                id: 11,
+                section: 'PHẦN III. CÂU HỎI GHÉP NỐI',
+                type: 'matching',
+                question: 'Câu 1. Ghép nối các đối tượng ở Cột A với nội dung phản ánh hậu quả của lạm phát tương ứng ở Cột B:',
+                colA: [
+                    { id: 1, text: 'Người lao động' },
+                    { id: 2, text: 'Doanh nghiệp' }
+                ],
+                colB: [
+                    { id: 'a', text: 'Chi phí đầu vào tăng, rủi ro thua lỗ, thu hẹp quy mô sản xuất, có nguy cơ phá sản và buộc phải cắt giảm lao động.' },
+                    { id: 'b', text: 'Sức mua đồng tiền giảm, thu nhập thực tế giảm, chi phí sinh hoạt đắt đỏ làm giảm mức sống, đặc biệt ảnh hưởng nặng nề đến người có thu nhập thấp.' }
+                ],
+                correctMapping: { 1: 'b', 2: 'a' },
+                explanation: 'Đối với người lao động (1), lạm phát làm sức mua giảm, thu nhập thực tế sụt giảm (1 nối với b). Đối với doanh nghiệp (2), chi phí đầu vào tăng cao làm thua lỗ, thu hẹp sản xuất và cắt giảm lao động (2 nối với a).'
+            },
+            {
+                id: 12,
+                section: 'PHẦN III. CÂU HỎI GHÉP NỐI',
+                type: 'matching',
+                question: 'Câu 2. Là một học sinh lớp 11, em và gia đình cần làm gì để ứng phó thông minh, tiết kiệm và trách nhiệm khi giá cả các mặt hàng sinh hoạt hằng ngày biến động tăng cao? Hãy ghép nối Cột A với Cột B:',
+                colA: [
+                    { id: 1, text: 'Quản lý tài chính cá nhân và gia đình' },
+                    { id: 2, text: 'Thực hành tiết kiệm tiêu dùng' },
+                    { id: 3, text: 'Trách nhiệm công dân trong tiêu dùng' }
+                ],
+                colB: [
+                    { id: 'a', text: 'Thực hành tiết kiệm điện, nước, dụng cụ học tập trong sinh hoạt hằng ngày; hạn chế mua sắm những vật dụng không cần thiết, lãng phí.' },
+                    { id: 'b', text: 'Lập kế hoạch chi tiêu cá nhân/gia đình một cách hợp lý, luôn ưu tiên các khoản chi cho nhu cầu thiết yếu trước.' },
+                    { id: 'c', text: 'Không hưởng ứng các tin đồn mua tích trữ hàng hóa gây sốt giá giả tạo; tích cực tuyên truyền văn hóa tiêu dùng văn minh, lành mạnh.' }
+                ],
+                correctMapping: { 1: 'b', 2: 'a', 3: 'c' },
+                explanation: 'Quản lý tài chính (1 - b): lập kế hoạch chi tiêu hợp lý. Tiết kiệm tiêu dùng (2 - a): tiết kiệm điện nước, đồ dùng. Trách nhiệm công dân (3 - c): không mua tích trữ gây sốt giá và tuyên truyền lành mạnh.'
+            }
+        ];
+
+        // Global State variables
+        let currentQuestionIndex = 0;
+        let studentAnswers = {};
+        let quizTimer = null;
+        let timeLeft = 900;
+        let isQuizSubmitted = false;
+        let activeModalCallback = null;
+
+        function initThreeBackground() {
+            const canvas = document.getElementById('three-bg-canvas');
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+            
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+            const group = new THREE.Group();
+            scene.add(group);
+
+            const geometries = [
+                new THREE.BoxGeometry(0.8, 0.8, 0.8),
+                new THREE.OctahedronGeometry(0.7),
+                new THREE.TetrahedronGeometry(0.8),
+                new THREE.IcosahedronGeometry(0.6)
+            ];
+
+            const material = new THREE.MeshStandardMaterial({
+                color: 0x00f0ff,
+                wireframe: true,
+                roughness: 0.3,
+                metalness: 0.8
+            });
+
+            const meshCount = 35;
+            const meshes = [];
+
+            for (let i = 0; i < meshCount; i++) {
+                const geom = geometries[Math.floor(Math.random() * geometries.length)];
+                const mesh = new THREE.Mesh(geom, material);
+
+                mesh.position.x = (Math.random() - 0.5) * 30;
+                mesh.position.y = (Math.random() - 0.5) * 20;
+                mesh.position.z = (Math.random() - 0.5) * 15 - 5;
+
+                mesh.rotation.x = Math.random() * Math.PI;
+                mesh.rotation.y = Math.random() * Math.PI;
+
+                mesh.userData = {
+                    speedX: (Math.random() - 0.5) * 0.01,
+                    speedY: (Math.random() - 0.5) * 0.01,
+                    rotSpeed: (Math.random() - 0.5) * 0.02
+                };
+
+                group.add(mesh);
+                meshes.push(mesh);
+            }
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+            scene.add(ambientLight);
+
+            const pointLight = new THREE.PointLight(0x00f0ff, 2, 50);
+            pointLight.position.set(10, 10, 10);
+            scene.add(pointLight);
+
+            camera.position.z = 15;
+
+            let mouseX = 0;
+            let mouseY = 0;
+            window.addEventListener('mousemove', (e) => {
+                mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+                mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+            });
+
+            function animate() {
+                requestAnimationFrame(animate);
+
+                group.rotation.y += 0.001 + mouseX * 0.002;
+                group.rotation.x += -mouseY * 0.002;
+
+                meshes.forEach(mesh => {
+                    mesh.rotation.x += mesh.userData.rotSpeed;
+                    mesh.rotation.y += mesh.userData.rotSpeed;
+                    mesh.position.y += mesh.userData.speedY;
+                    mesh.position.x += mesh.userData.speedX;
+
+                    if (mesh.position.y > 12) mesh.position.y = -12;
+                    if (mesh.position.y < -12) mesh.position.y = 12;
+                    if (mesh.position.x > 18) mesh.position.x = -18;
+                    if (mesh.position.x < -18) mesh.position.x = 18;
+                });
+
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        }
+
+        // Validate and Start Quiz
+        function validateAndStartQuiz() {
+            const nameInput = document.getElementById('student-name-input').value.trim();
+            const classInput = document.getElementById('student-class-input').value.trim();
+            const errorEl = document.getElementById('student-info-error');
+
+            if (!nameInput || !classInput) {
+                errorEl.classList.remove('hidden');
+                return;
+            }
+            errorEl.classList.add('hidden');
+
+            window.currentStudent = { name: nameInput, className: classInput };
+
+            document.getElementById('display-student-name').innerText = nameInput;
+            document.getElementById('display-student-class').innerText = classInput;
+
+            document.getElementById('welcome-screen').classList.add('hidden');
+            document.getElementById('quiz-container').classList.remove('hidden');
+            document.getElementById('timer-badge').classList.remove('hidden');
+            document.getElementById('timer-badge').classList.add('flex');
+
+            renderQuestionDots();
+            loadQuestion(0);
+            startTimer();
+        }
+
+        // Timer countdown function
+        function startTimer() {
+            const timeDisplay = document.getElementById('time-display');
+            quizTimer = setInterval(() => {
+                if (timeLeft <= 0) {
+                    clearInterval(quizTimer);
+                    autoSubmitQuizDueToTimeout();
+                    return;
+                }
+                timeLeft--;
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                timeDisplay.innerText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                if (timeLeft <= 120) {
+                    timeDisplay.classList.add('text-rose-400', 'animate-pulse');
+                }
+            }, 1000);
+        }
+
+        // Render question dots
+        function renderQuestionDots() {
+            const dotsContainer = document.getElementById('question-dots');
+            dotsContainer.innerHTML = '';
+
+            quizData.forEach((q, index) => {
+                const dot = document.createElement('button');
+                dot.id = `q-dot-${index}`;
+                dot.className = `w-7 h-7 rounded-lg font-extrabold text-[11px] flex items-center justify-center transition-all shadow-sm btn-3d`;
+                dot.innerText = index + 1;
+                dot.onclick = () => jumpToQuestion(index);
+                dotsContainer.appendChild(dot);
+            });
+            updateQuestionDotsState();
+        }
+
+        // Update dots colors
+        function updateQuestionDotsState() {
+            quizData.forEach((q, index) => {
+                const dot = document.getElementById(`q-dot-${index}`);
+                if (!dot) return;
+
+                const isAnswered = isQuestionAnswered(q);
+                const isCurrent = (index === currentQuestionIndex);
+
+                if (isCurrent) {
+                    dot.className = `w-7 h-7 rounded-lg font-extrabold text-[11px] flex items-center justify-center transition-all shadow-md bg-cyan-400 text-navy-950 ring-2 ring-cyan-600 scale-105`;
+                } else if (isAnswered) {
+                    dot.className = `w-7 h-7 rounded-lg font-extrabold text-[11px] flex items-center justify-center transition-all bg-emerald-600 text-white shadow-sm`;
+                } else {
+                    dot.className = `w-7 h-7 rounded-lg font-extrabold text-[11px] flex items-center justify-center transition-all bg-white text-slate-700 border border-slate-300 hover:bg-slate-100`;
+                }
+            });
+
+            let answeredCount = 0;
+            quizData.forEach(q => {
+                if (isQuestionAnswered(q)) answeredCount++;
+            });
+            document.getElementById('completion-tracker').innerText = `Đã làm: ${answeredCount} / ${quizData.length}`;
+            
+            const percent = (answeredCount / quizData.length) * 100;
+            document.getElementById('progress-bar').style.width = `${percent}%`;
+
+            const submitBtn = document.getElementById('submit-btn');
+            if (answeredCount < quizData.length) {
+                submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                submitBtn.title = 'Vui lòng hoàn thành tất cả các câu hỏi trước khi nộp bài!';
+            } else {
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                submitBtn.title = 'Đã hoàn thành tất cả câu hỏi, có thể nộp bài!';
+            }
+        }
+
+        // Check if question is answered
+        function isQuestionAnswered(q) {
+            const ans = studentAnswers[q.id];
+            if (ans === undefined || ans === null) return false;
+            if (q.type === 'single') {
+                return ans !== '';
+            } else if (q.type === 'multiple_tf') {
+                if (typeof ans !== 'object') return false;
+                for (let stmt of q.statements) {
+                    if (ans[stmt.key] === undefined) return false;
+                }
+                return true;
+            } else if (q.type === 'matching') {
+                if (typeof ans !== 'object') return false;
+                for (let itemA of q.colA) {
+                    if (!ans[itemA.id]) return false;
+                }
+                return true;
+            }
+            return false;
+        }
+
+        function loadQuestion(index) {
+            currentQuestionIndex = index;
+            const q = quizData[index];
+            const card = document.getElementById('question-card');
+
+            document.getElementById('current-q-num').innerText = index + 1;
+            document.getElementById('prev-btn').disabled = (index === 0);
+            document.getElementById('next-btn').style.display = (index === quizData.length - 1) ? 'none' : 'flex';
+
+            let html = `
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="px-2.5 py-0.5 bg-navy-950 text-cyan-300 text-[10px] font-extrabold rounded tracking-wider uppercase border border-navy-800">
+                            ${q.section}
+                        </span>
+                        <span class="text-[11px] font-bold text-slate-500">Câu ${index + 1} / ${quizData.length}</span>
+                    </div>
+                    <h3 class="text-xs md:text-sm font-bold text-navy-950 leading-snug">
+                        ${q.question}
+                    </h3>
+            `;
+
+            if (q.type === 'single') {
+                html += `<div class="grid grid-cols-1 gap-2 pt-1">`;
+                q.options.forEach((opt, optIdx) => {
+                    const isSelected = studentAnswers[q.id] === optIdx;
+                    const btnClass = isSelected
+                        ? 'bg-cyan-500 text-navy-950 border-cyan-600 font-extrabold shadow-3d-cyan ring-2 ring-cyan-300'
+                        : 'bg-white/90 hover:bg-slate-50 text-slate-800 border-slate-200 font-semibold';
+
+                    html += `
+                        <button onclick="selectSingleOption(${q.id}, ${optIdx})" class="w-full text-left px-3.5 py-2.5 rounded-xl border ${btnClass} transition-all flex items-center gap-2.5 text-xs btn-3d">
+                            <span class="w-6 h-6 rounded-lg bg-slate-100 text-slate-900 border border-slate-300 flex items-center justify-center text-[10px] font-black flex-shrink-0">
+                                ${String.fromCharCode(65 + optIdx)}
+                            </span>
+                            <span>${opt}</span>
+                        </button>
+                    `;
+                });
+                html += `</div>`;
+            } else if (q.type === 'multiple_tf') {
+                html += `<div class="space-y-2.5 pt-1">`;
+                q.statements.forEach((stmt) => {
+                    const currentAns = studentAnswers[q.id] ? studentAnswers[q.id][stmt.key] : undefined;
+                    const isTrueSelected = currentAns === true;
+                    const isFalseSelected = currentAns === false;
+
+                    html += `
+                        <div class="bg-white/80 p-3 rounded-xl border border-slate-200 shadow-sm space-y-2">
+                            <p class="text-xs font-bold text-navy-950 leading-snug">${stmt.text}</p>
+                            <div class="flex gap-3">
+                                <button onclick="selectTFOption(${q.id}, '${stmt.key}', true)" class="flex-1 py-1.5 px-3 rounded-lg border text-[11px] font-extrabold transition-all btn-3d ${isTrueSelected ? 'bg-emerald-600 text-white border-emerald-700 shadow-3d-emerald' : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-emerald-50'}">
+                                    <i class="fa-solid fa-check mr-1"></i> ĐÚNG
+                                </button>
+                                <button onclick="selectTFOption(${q.id}, '${stmt.key}', false)" class="flex-1 py-1.5 px-3 rounded-lg border text-[11px] font-extrabold transition-all btn-3d ${isFalseSelected ? 'bg-rose-600 text-white border-rose-700 shadow-3d-rose' : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-rose-50'}">
+                                    <i class="fa-solid fa-xmark mr-1"></i> SAI
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+            } else if (q.type === 'matching') {
+                html += `
+                    <div class="overflow-x-auto pt-1">
+                        <table class="w-full border-collapse bg-white rounded-xl overflow-hidden shadow-sm border border-slate-300 text-xs">
+                            <thead>
+                                <tr class="bg-navy-950 text-white font-bold text-center">
+                                    <th class="p-2.5 border border-navy-800 w-1/2">Cột A (Đối tượng / Nội dung)</th>
+                                    <th class="p-2.5 border border-navy-800 w-1/2">Cột B (Lựa chọn ghép nối)</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200">
+                `;
+
+                q.colA.forEach(itemA => {
+                    const currentSelectedB = studentAnswers[q.id] ? studentAnswers[q.id][itemA.id] : '';
+                    html += `
+                        <tr class="hover:bg-slate-50/80 transition-colors">
+                            <td class="p-3 border border-slate-200 font-bold text-navy-950 align-top">
+                                <span class="inline-block px-1.5 py-0.5 bg-cyan-100 text-cyan-900 rounded text-[10px] font-black mr-1.5">${itemA.id}</span>
+                                ${itemA.text}
+                            </td>
+                            <td class="p-3 border border-slate-200 align-middle">
+                                <select onchange="selectMatchingOption(${q.id}, ${itemA.id}, this.value)" class="w-full p-2 rounded-lg border border-slate-300 bg-white font-semibold text-slate-900 text-xs focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-200 shadow-sm">
+                                    <option value="">-- Chọn đáp án Cột B --</option>
+                    `;
+                    q.colB.forEach(itemB => {
+                        const isSelected = currentSelectedB === itemB.id;
+                        html += `<option value="${itemB.id}" ${isSelected ? 'selected' : ''}>[${itemB.id.toUpperCase()}] ${itemB.text}</option>`;
+                    });
+                    html += `
+                                </select>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                html += `
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            }
+
+            html += `</div>`;
+            card.innerHTML = html;
+            card.scrollTop = 0;
+            updateQuestionDotsState();
+        }
+
+        // Selection Handlers
+        function selectSingleOption(qId, optIdx) {
+            studentAnswers[qId] = optIdx;
+            loadQuestion(currentQuestionIndex);
+        }
+
+        function selectTFOption(qId, stmtKey, val) {
+            if (!studentAnswers[qId]) {
+                studentAnswers[qId] = {};
+            }
+            studentAnswers[qId][stmtKey] = val;
+            loadQuestion(currentQuestionIndex);
+        }
+
+        function selectMatchingOption(qId, aId, bId) {
+            if (!studentAnswers[qId]) {
+                studentAnswers[qId] = {};
+            }
+            studentAnswers[qId][aId] = bId;
+            updateQuestionDotsState();
+        }
+
+        function navigateQuestion(direction) {
+            const newIndex = currentQuestionIndex + direction;
+            if (newIndex >= 0 && newIndex < quizData.length) {
+                loadQuestion(newIndex);
+            }
+        }
+
+        function jumpToQuestion(index) {
+            loadQuestion(index);
+        }
+
+        function promptSubmitQuiz() {
+            let answeredCount = 0;
+            quizData.forEach(q => {
+                if (isQuestionAnswered(q)) answeredCount++;
+            });
+
+            const unanswered = quizData.length - answeredCount;
+            if (unanswered > 0) {
+                showModal(
+                    'Chưa hoàn thành', 
+                    `Bạn còn <strong class="text-rose-600 font-extrabold">${unanswered} câu hỏi chưa trả lời</strong>. Vui lòng hoàn thành 100% tất cả câu hỏi trước khi nộp bài!`, 
+                    'fa-solid fa-triangle-exclamation', 
+                    'bg-amber-600', 
+                    () => {}
+                );
+                document.getElementById('modal-cancel-btn').style.display = 'none';
+                document.getElementById('modal-confirm-btn').innerText = 'Tiếp tục làm';
+                return;
+            }
+
+            document.getElementById('modal-cancel-btn').style.display = 'inline-block';
+            document.getElementById('modal-confirm-btn').innerText = 'Xác nhận';
+
+            let msg = `Đã hoàn thành ${quizData.length}/${quizData.length} câu hỏi. Xác nhận nộp bài làm?`;
+            showModal('Xác nhận nộp bài', msg, 'fa-solid fa-paper-plane', 'bg-emerald-600', () => {
+                submitQuiz();
+            });
+        }
+
+        function autoSubmitQuizDueToTimeout() {
+            showModal('Hết thời gian!', 'Thời gian 15 phút làm bài đã hết. Hệ thống tự động nộp bài.', 'fa-solid fa-stopwatch', 'bg-amber-600', () => {
+                submitQuiz();
+            });
+        }
+
+        function submitQuiz() {
+            closeModal();
+            if (quizTimer) clearInterval(quizTimer);
+            isQuizSubmitted = true;
+
+            let correctCount = 0;
+            let totalPossibleScoreParts = 0;
+
+            quizData.forEach(q => {
+                const userAns = studentAnswers[q.id];
+                if (q.type === 'single') {
+                    totalPossibleScoreParts += 1;
+                    if (userAns !== undefined && userAns === q.correct) {
+                        correctCount += 1;
+                    }
+                } else if (q.type === 'multiple_tf') {
+                    q.statements.forEach(stmt => {
+                        totalPossibleScoreParts += 1;
+                        if (userAns && userAns[stmt.key] === stmt.correct) {
+                            correctCount += 1;
+                        }
+                    });
+                } else if (q.type === 'matching') {
+                    q.colA.forEach(itemA => {
+                        totalPossibleScoreParts += 1;
+                        if (userAns && userAns[itemA.id] === q.correctMapping[itemA.id]) {
+                            correctCount += 1;
+                        }
+                    });
+                }
+            });
+
+            const scorePercentage = Math.round((correctCount / totalPossibleScoreParts) * 100);
+            const scoreOnTen = ((correctCount / totalPossibleScoreParts) * 10).toFixed(1);
+            const timeUsedSecs = 900 - timeLeft;
+            const mUsed = Math.floor(timeUsedSecs / 60);
+            const sUsed = timeUsedSecs % 60;
+            const timeStr = `${mUsed}p ${sUsed}s`;
+
+            document.getElementById('quiz-container').classList.add('hidden');
+            document.getElementById('timer-badge').classList.add('hidden');
+            const resultScreen = document.getElementById('result-screen');
+            resultScreen.classList.remove('hidden');
+
+            document.getElementById('result-student-info').innerText = `${window.currentStudent.name} - ${window.currentStudent.className}`;
+            document.getElementById('score-badge').innerText = `${scoreOnTen}đ`;
+            document.getElementById('stat-correct').innerText = `${correctCount}/${totalPossibleScoreParts}`;
+            document.getElementById('stat-time').innerText = timeStr;
+
+            const formName = encodeURIComponent(window.currentStudent.name);
+            const formClass = encodeURIComponent(window.currentStudent.className);
+            const formScore = encodeURIComponent(`${scoreOnTen} điểm (${correctCount}/${totalPossibleScoreParts} ý - ${scorePercentage}%) - TG: ${timeStr}`);
+            
+            const gFormUrl = `https://docs.google.com/forms/d/e/1FAIpQLSfo91AzlEqSHEVOwybLvOfKZRbRi3EakBfgN3sXnqd-m9PCoQ/formResponse?entry.1515203293=${formName}&entry.1543818789=${formClass}&entry.701255688=${formScore}&submit=Submit`;
+            
+            let iframe = document.getElementById('gform-submit-iframe');
+            if (!iframe) {
+                iframe = document.createElement('iframe');
+                iframe.id = 'gform-submit-iframe';
+                iframe.name = 'gform-submit-iframe';
+                iframe.style.display = 'none';
+                document.body.appendChild(iframe);
+            }
+            iframe.src = gFormUrl;
+
+            let summaryText = scorePercentage >= 85 ? 'Xuất sắc! Nắm vững tuyệt đối kiến thức Lạm phát.' : (scorePercentage >= 65 ? 'Khá tốt! Đã hiểu cơ bản các nội dung bài học.' : 'Cần ôn tập thêm kiến thức bài Lạm phát.');
+            document.getElementById('score-summary').innerText = summaryText;
+        }
+
+        function showModal(title, msg, iconClass, iconBgClass, confirmCallback) {
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-msg').innerHTML = msg;
+            
+            const iconEl = document.getElementById('modal-icon');
+            iconEl.className = `w-12 h-12 rounded-xl ${iconBgClass} text-white flex items-center justify-center text-xl mx-auto shadow-3d-sm`;
+            iconEl.innerHTML = `<i class="${iconClass}"></i>`;
+
+            activeModalCallback = confirmCallback;
+            document.getElementById('custom-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('custom-modal').classList.add('hidden');
+            activeModalCallback = null;
+        }
+
+        function confirmModalAction() {
+            if (activeModalCallback) {
+                activeModalCallback();
+            }
+            closeModal();
+        }
+
+        window.onload = function() {
+            initThreeBackground();
+        };
+    </script>
+</body>
+</html>
